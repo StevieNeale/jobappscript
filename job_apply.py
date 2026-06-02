@@ -82,32 +82,31 @@ def build_prompt(job_description: str, resumes: Iterable[str]) -> str:
 
 def fallback_resume(job_description: str, resumes: Iterable[str]) -> str:
     combined = "\n".join(resumes)
-    skills = sorted(
-        {
-            token
-            for token in re.findall(r"[A-Za-z][A-Za-z0-9+.#-]{1,}", f"{job_description}\n{combined}")
-            if token.lower()
-            in {
-                "python",
-                "sql",
-                "javascript",
-                "typescript",
-                "aws",
-                "azure",
-                "gcp",
-                "docker",
-                "kubernetes",
-                "django",
-                "flask",
-                "react",
-                "node",
-                "git",
-                "linux",
-                "terraform",
-                "ci/cd",
-            }
-        }
-    )
+    text_blob = f"{job_description}\n{combined}"
+    tokenized = {token.lower() for token in re.findall(r"[A-Za-z][A-Za-z0-9+.#/-]{1,}", text_blob)}
+    if "ci/cd" in text_blob.lower():
+        tokenized.add("ci/cd")
+
+    skill_labels = {
+        "python": "Python",
+        "sql": "SQL",
+        "javascript": "JavaScript",
+        "typescript": "TypeScript",
+        "aws": "AWS",
+        "azure": "Azure",
+        "gcp": "GCP",
+        "docker": "Docker",
+        "kubernetes": "Kubernetes",
+        "django": "Django",
+        "flask": "Flask",
+        "react": "React",
+        "node": "Node",
+        "git": "Git",
+        "linux": "Linux",
+        "terraform": "Terraform",
+        "ci/cd": "CI/CD",
+    }
+    skills = sorted(skill_labels[skill] for skill in tokenized if skill in skill_labels)
     skills_line = ", ".join(skills) if skills else "Python, SQL, Git"
 
     summary_source = re.sub(r"\s+", " ", job_description).strip()
